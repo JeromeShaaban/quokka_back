@@ -5,10 +5,11 @@ const port = process.env.PORT || 5000;
 const homeRouter = express.Router();
 const postsRouter = express.Router();
 const Joi = require('joi');
+const cors = require('cors');
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
-require('dotenv');
+app.use(cors());
 
 homeRouter.get('/', (req,res) => {
   res.send('ça marche!')
