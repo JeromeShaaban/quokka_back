@@ -5,6 +5,7 @@ const port = process.env.PORT || 5000;
 const homeRouter = express.Router();
 const postsRouter = express.Router();
 const Joi = require('joi');
+
 const KeanuRoad = require('./keanu')
 var cors = require('cors')
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(KeanuRoad)
 require('dotenv');
+
 
 homeRouter.get('/', (req,res) => {
   res.send('ça marche!')
@@ -63,8 +65,43 @@ app.post('/recipes', (req, res) => {
 })
 
 
+app.patch('/recipes/:id', (req, res) => {
+  connection
+    .promise()
+    .query('SELECT * FROM recipes WHERE id = ?', [req.params.id])
+    .then(([results]) => {
+      existingRecipe = results[0];
+      if (!existingRecipe) return Promise.reject('Recipe NOT FOUND');
+      return connection
+        .promise()
+        .query('UPDATE recipes SET ? WHERE id = ?', [
+          req.body,
+          req.params.id,
+        ]);
+    })
+    .then(() => {
+      res.json({ ...existingRecipe, ...req.body});
+    })
+    .catch((err) => {
+      if (err === "recipe NOT FOUND") {
+        return res.sendStatus(404);
+      }
+      res.sendStatus(500);
+    });
+});
 
-
+app.delete('/recipes/:id', (req, res) => {
+  connection.promise()
+    .query('DELETE FROM recipes WHERE id = ?', [req.params.id])
+    .then(([result]) => {
+        if (result.affectRows) res.sendStatus(204);
+        else res.sendStatus(404);
+    })
+    .catch((err) => {
+      console.error(err)
+      res.sendStatus(500);
+    })
+})
 
 
 
